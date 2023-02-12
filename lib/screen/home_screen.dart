@@ -1,26 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:vid_player/component/custom_video_player.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // XFile : image_picker에서 제공하는 타입으로 모든 이미지, 파일 리턴받을 수 있다
+  XFile? video;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        // decoration 사용하는 경우 "color:" 는 BoxDecoration 안에 설정해야함. 동시에 같은 레벨로 쓰면 에러발생.
-        decoration: getBoxDecoration(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _Logo(),
-            // Padding을 써도되지만 한번 감싸야해서.. 귀찮으니 SizedBox쓰는 경우가 많다고함.
-            SizedBox(height: 30.0,),
-            _AppName()
-          ],
-        ),
+      body: video != null ? renderVideo() : renderEmpty(),
+    );
+  }
+
+  Widget renderVideo() {
+    return Center(
+      child: CustomVideoPlayer(
+        video: video!,
+        onNewVideoPressed: onNewVideoPressed,
       ),
     );
+  }
+
+  Widget renderEmpty() {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      // decoration 사용하는 경우 "color:" 는 BoxDecoration 안에 설정해야함. 동시에 같은 레벨로 쓰면 에러발생.
+      decoration: getBoxDecoration(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _Logo(
+            onTap: onNewVideoPressed,
+          ),
+          // Padding을 써도되지만 한번 감싸야해서.. 귀찮으니 SizedBox쓰는 경우가 많다고함.
+          SizedBox(
+            height: 30.0,
+          ),
+          _AppName()
+        ],
+      ),
+    );
+  }
+
+  void onNewVideoPressed() async {
+    final video = await ImagePicker().pickVideo(
+      source: ImageSource.gallery, // 갤러리 열기
+    );
+
+    // 비디오를 고르고 나온 경우
+    if (video != null) {
+      setState(() {
+        this.video = video;
+      });
+    }
   }
 
   BoxDecoration getBoxDecoration() {
@@ -43,11 +83,17 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _Logo extends StatelessWidget {
-  const _Logo({Key? key}) : super(key: key);
+  final VoidCallback onTap;
+  const _Logo({Key? key, required this.onTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset('asset/image/logo.png');
+    return GestureDetector(
+      onTap: onTap,
+      child: Image.asset(
+        'asset/image/logo.png',
+      ),
+    );
   }
 }
 
@@ -80,4 +126,3 @@ class _AppName extends StatelessWidget {
     );
   }
 }
-
